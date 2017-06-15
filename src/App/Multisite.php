@@ -1,5 +1,4 @@
-<?php defined('SYSPATH') or die('No direct script access');
-
+<?php
 /**
  * Ushahidi Multisite
  *
@@ -8,15 +7,18 @@
  * @copyright  2014 Ushahidi
  * @license    https://www.gnu.org/licenses/agpl-3.0.html GNU Affero General Public License Version 3 (AGPL3)
  */
+
+namespace Ushahidi\App;
+
 use League\Url\Url;
 
-class Ushahidi_Multisite
+class Multisite
 {
 	protected $db;
 	protected $domain;
 	protected $subdomain;
 
-	public function __construct(Database $db)
+	public function __construct(\Ohanzee\Database $db)
 	{
 		$this->db = $db;
 	}
@@ -58,7 +60,7 @@ class Ushahidi_Multisite
 		$this->parseHost($host);
 
 		// .. and find the current deployment credentials
-		$result = DB::select()->from('deployments')
+		$result = \Ohanzee\DB::select()->from('deployments')
 			->where('subdomain', '=', $this->subdomain)
 			->where('domain', '=', $this->domain)
 			->limit(1)
@@ -70,11 +72,12 @@ class Ushahidi_Multisite
 
 		// No deployment? throw a 404
 		if (! count($deployment)) {
-			throw new HTTP_Exception_404("Deployment not found");
+			abort(404, "Deployment not found");
 		}
 
 		// Set new database config
-		$config = Kohana::$config->load('database')->default;
+		$config = Repository\OhanzeeRepository::getDefaultConfig();
+		Kohana::$config->load('database')->default;
 		$config['connection'] = [
 			'hostname'   => $deployment['db_host'],
 			'database'   => $deployment['db_name'],
@@ -85,11 +88,11 @@ class Ushahidi_Multisite
 
 		// Check we can connect to the DB
 		try {
-			DB::select(DB::expr('1'))->from('users')
-				->execute(Database::instance('deployment', $config));
+			\Ohanzee\DB::select(\Ohanzee\DB::expr('1'))->from('users')
+				->execute(\Ohanzee\Database::instance('deployment', $config));
 		} catch (Exception $e) {
 			// If we can't connect, throw 503 Service Unavailable
-			throw new HTTP_Exception_503("Deployment not ready");
+			abort(503, "Deployment not ready");
 		}
 
 		return $config;
