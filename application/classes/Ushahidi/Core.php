@@ -52,11 +52,6 @@ abstract class Ushahidi_Core {
 
 		$di->set('tool.validation', $di->lazyNew('Ushahidi_ValidationEngine'));
 
-		$di->set('tool.mailer', $di->lazyNew('Ushahidi_Mailer', [
-			'siteConfig' => $di->lazyGet('site.config'),
-			'clientUrl' => $di->lazyGet('clienturl')
-		]));
-
 		/**
 		 * 1. Load the plugins
 		 */

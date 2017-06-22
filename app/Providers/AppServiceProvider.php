@@ -126,6 +126,12 @@ class AppServiceProvider extends ServiceProvider
             return '';
         });
 
+        // Configure mailer
+        $di->set('tool.mailer', $di->lazyNew('Ushahidi_Mailer', [
+            'mailer' => app('Illuminate\Contracts\Mail\Mailer'),
+            'siteConfig' => $di->lazyGet('site.config'),
+            'clientUrl' => $di->lazyGet('clienturl')
+        ]));
 
         // @todo move to auth provider?
         $di->set('session.user', function () use ($di) {
